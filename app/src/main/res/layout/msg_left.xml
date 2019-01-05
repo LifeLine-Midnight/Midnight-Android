@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="10dp"
+    android:paddingTop="10dp"
+    android:layout_marginBottom="5dp">
+
+    <ImageView
+        android:id="@+id/chat_img"
+        android:layout_width="@dimen/user_pic"
+        android:layout_height="@dimen/user_pic"
+        android:src="@drawable/dft0"
+        android:scaleType="fitXY"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/msg_left"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:background="@drawable/herchat"
+        android:gravity="center_vertical"
+        android:text="月下柳梢头，人约黄昏后。今年元夜时，月与灯依旧。"
+        android:textColor="#0f0f0f"
+        android:paddingStart="25dp"
+        android:textSize="17dp"
+        android:maxWidth="280dp"
+        android:lineSpacingExtra="3dp"
+        app:layout_constraintStart_toEndOf="@id/chat_img"
+        app:layout_constraintTop_toTopOf="@id/chat_img" />
+
+</android.support.constraint.ConstraintLayout>
