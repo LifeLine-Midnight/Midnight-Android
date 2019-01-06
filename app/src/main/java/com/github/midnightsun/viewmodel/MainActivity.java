@@ -1,10 +1,10 @@
 package com.github.midnightsun;
 
-import android.animation.ObjectAnimator;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 
@@ -63,6 +64,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        // check if logged
+        if (!checkIfLoged()) {
+            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+            startActivity(intent);
+        }
+
         // init navigation bar
         navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
@@ -115,7 +122,27 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private void showUserPage() {}
+    private void showUserPage() {
+        setContentView(R.layout.user_page);
+        // init navigation bar
+        navigation = (BottomNavigationView) findViewById(R.id.navigation);
+        navigation.setSelectedItemId(R.id.navigation_notifications);
+        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+
+        Button quit_btn = findViewById(R.id.quit_btn);
+        quit_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SharedPreferences sharedPreferences =
+                        getSharedPreferences("system_data", Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.clear();
+                editor.apply();
+                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                startActivity(intent);
+            }
+        });
+    }
 
     private void initListData(int type) {
         switch (type) {
@@ -177,6 +204,13 @@ public class MainActivity extends AppCompatActivity {
                 listView.setAdapter(post_adapter);
                 break;
         }
+    }
+
+    boolean checkIfLoged() {
+        SharedPreferences sharedPreferences =
+                getSharedPreferences("system_data", Context.MODE_PRIVATE);
+        String mpsd = sharedPreferences.getString("user_logged", "");
+        return !mpsd.equals("");
     }
 
 }
