@@ -1,4 +1,4 @@
-package com.github.midnightsun;
+package com.github.midnightsun.viewmodel;
 
 import android.content.Context;
 import android.content.Intent;
@@ -15,6 +15,18 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import android.widget.Toast;
+
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.github.midnightsun.R;
+import com.github.midnightsun.datatype.UserData;
+import com.github.midnightsun.service.MyApplication;
+import com.google.gson.Gson;
+
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,6 +39,8 @@ public class MainActivity extends AppCompatActivity {
     private ListView listView;
     private ArrayList<Map<String, Object>> list_data;
     private ArrayList<Map<String, Object>> post_data;
+    private static final String logOut_uri = "/midnightapisvr/api/session/userlogout";
+    private UserData userData;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -88,6 +102,13 @@ public class MainActivity extends AppCompatActivity {
         Log.i("tag", "onDestroy: Main");
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        //通过Tag标签取消请求队列中对应的全部请求
+        MyApplication.getHttpQueues().cancelAll("log-out");
+    }
+
     // when back to MessageType Page
     private void showMessagePage() {
         setContentView(R.layout.activity_main);
@@ -133,13 +154,7 @@ public class MainActivity extends AppCompatActivity {
         quit_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SharedPreferences sharedPreferences =
-                        getSharedPreferences("system_data", Context.MODE_PRIVATE);
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.clear();
-                editor.apply();
-                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-                startActivity(intent);
+               logOut("log-out");
             }
         });
     }
@@ -206,11 +221,61 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    boolean checkIfLoged() {
+    private boolean checkIfLoged() {
         SharedPreferences sharedPreferences =
                 getSharedPreferences("system_data", Context.MODE_PRIVATE);
-        String mpsd = sharedPreferences.getString("user_logged", "");
+        String mpsd = sharedPreferences.getString("token", "");
         return !mpsd.equals("");
+    }
+
+    private void logOut(String tag) {
+        SharedPreferences sharedPreferences =
+                getSharedPreferences("system_data", Context.MODE_PRIVATE);
+        String token = sharedPreferences.getString("token", "");
+
+        Map<String, String> map = new HashMap<>();
+        map.put("token", token);
+
+        JSONObject object = new JSONObject(map);
+
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST,
+                MyApplication.host + logOut_uri, object,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject jsonObject) {
+                        Log.i("log-out", jsonObject.toString());
+                        Gson gson = new Gson();
+                        userData = gson.fromJson(jsonObject.toString(), UserData.class);
+                        UIfresh();
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError volleyError) {
+                        Log.i("log-out", volleyError.toString());
+                    }
+                });
+
+        request.setTag(tag);
+        MyApplication.getHttpQueues().add(request);
+    }
+
+    private void UIfresh() {
+        if (userData.rtn != 0) {
+            Toast.makeText(MainActivity.this,
+                    userData.msg, Toast.LENGTH_SHORT).show();
+        }
+        else {
+            SharedPreferences sharedPreferences =
+                    getSharedPreferences("system_data", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.clear();
+            editor.apply();
+
+            // switch to log in activity
+            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+            startActivity(intent);
+        }
     }
 
 }
