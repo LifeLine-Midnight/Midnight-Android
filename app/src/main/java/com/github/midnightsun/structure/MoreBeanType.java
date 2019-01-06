@@ -1,7 +1,4 @@
-package com.github.midnightsun;
-/**
- * Created by Jason on 2019/1/5.
- */
+package com.github.midnightsun.structure;
 
 public abstract class MoreBeanType {
     private int viewType;

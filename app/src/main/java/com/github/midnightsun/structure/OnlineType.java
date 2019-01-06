@@ -1,8 +1,6 @@
-package com.github.midnightsun;
+package com.github.midnightsun.structure;
 
-/**
- * Created by Jason on 2019/1/5.
- */
+import com.github.midnightsun.structure.MoreBeanType;
 
 public class OnlineType extends MoreBeanType {
     public static final int TYPE_ONLINE = 3;

@@ -1,4 +1,4 @@
-package com.github.midnightsun;
+package com.github.midnightsun.utilis;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -7,11 +7,10 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.util.List;
+import com.github.midnightsun.R;
+import com.github.midnightsun.structure.MoreBeanType;
 
-/**
- * Created by Jason on 2019/1/5.
- */
+import java.util.List;
 
 public class ChatAdapter extends RecyclerView.Adapter {
     //定义五种常量  表示五种条目类型

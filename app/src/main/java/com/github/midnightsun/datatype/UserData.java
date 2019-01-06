@@ -2,7 +2,7 @@ package com.github.midnightsun.datatype;
 
 import com.google.gson.annotations.SerializedName;
 
-public class SignupData {
+public class UserData {
     @SerializedName("rtn")
     public int rtn;
 

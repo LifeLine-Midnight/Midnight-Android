@@ -1,8 +1,4 @@
-package com.github.midnightsun;
-
-/**
- * Created by Jason on 2019/1/5.
- */
+package com.github.midnightsun.structure;
 
 public class MessageType extends MoreBeanType {
     private String msg;

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.github.midnightsun.ChatActivity"
+    tools:context="com.github.midnightsun.viewmodel.ChatActivity"
     android:background="#e0e0e0">
     <android.support.v7.widget.Toolbar
         android:id="@+id/title_bar"

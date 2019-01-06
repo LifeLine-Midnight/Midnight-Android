@@ -1,4 +1,4 @@
-package com.github.midnightsun;
+package com.github.midnightsun.viewmodel;
 
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
@@ -6,13 +6,18 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toolbar;
+
+import com.github.midnightsun.utilis.ChatAdapter;
+import com.github.midnightsun.structure.DateType;
+import com.github.midnightsun.structure.MessageType;
+import com.github.midnightsun.structure.MoreBeanType;
+import com.github.midnightsun.structure.OnlineType;
+import com.github.midnightsun.R;
 
 import java.util.ArrayList;
 import java.util.List;
