@@ -1,8 +1,6 @@
-package com.github.midnightsun.viewmodel;
+package com.github.midnightsun.ui;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -18,6 +16,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.github.midnightsun.R;
 import com.github.midnightsun.datatype.UserData;
 import com.github.midnightsun.service.MyApplication;
+import com.github.midnightsun.utilis.SystemState;
 import com.google.gson.Gson;
 
 import org.json.JSONObject;
@@ -32,6 +31,7 @@ public class LoginActivity extends AppCompatActivity {
     private EditText use_psd;
     private UserData userData;
     private static final String uri = "/midnightapisvr/api/session/userlogin";
+    SystemState state = new SystemState(LoginActivity.this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,13 +75,6 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    void setUserLoged() {
-        SharedPreferences sharedPreferences =
-                getSharedPreferences("system_data", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("token", userData.data.token);
-        editor.apply();
-    }
 
     private void logIn(String username, String psd, String tag) {
         Map<String, String> map = new HashMap<>();
@@ -123,7 +116,7 @@ public class LoginActivity extends AppCompatActivity {
             Toast.makeText(LoginActivity.this,
                     "登陆成功",Toast.LENGTH_SHORT).show();
 
-            setUserLoged();
+            state.setToken(userData.data.token);
             // switch to main activity
             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
             startActivity(intent);

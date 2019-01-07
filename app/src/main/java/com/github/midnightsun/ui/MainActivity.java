@@ -1,20 +1,25 @@
-package com.github.midnightsun.viewmodel;
+package com.github.midnightsun.ui;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.internal.BottomNavigationItemView;
+import android.support.design.internal.BottomNavigationMenuView;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -24,6 +29,8 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.github.midnightsun.R;
 import com.github.midnightsun.datatype.UserData;
 import com.github.midnightsun.service.MyApplication;
+import com.github.midnightsun.service.MyService;
+import com.github.midnightsun.utilis.SystemState;
 import com.google.gson.Gson;
 
 import org.json.JSONObject;
@@ -38,9 +45,12 @@ public class MainActivity extends AppCompatActivity {
     private Toolbar mToolbarTb;
     private ListView listView;
     private ArrayList<Map<String, Object>> list_data;
+    SimpleAdapter adapter;
     private ArrayList<Map<String, Object>> post_data;
     private static final String logOut_uri = "/midnightapisvr/api/session/userlogout";
     private UserData userData;
+    private SystemState state = new SystemState(MainActivity.this);
+    private MsgBroadCastReceiver mBroadcastReceiver;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -78,15 +88,29 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         // check if logged
-        if (!checkIfLoged()) {
+        if (state.getToken().equals("")) {
             Intent intent = new Intent(MainActivity.this, LoginActivity.class);
             startActivity(intent);
+        } else {
+            Intent intent = new Intent(MainActivity.this, MyService.class);
+            startService(intent);
         }
+
+        mBroadcastReceiver = new MsgBroadCastReceiver();
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(MsgBroadCastReceiver.MESSAGE_ACTION);
+        intentFilter.addAction(MsgBroadCastReceiver.NEWS_ACTION);
+        intentFilter.addAction(MsgBroadCastReceiver.POST_ACTION);
+        // 3. 动态注册：调用Context的registerReceiver（）方法
+        registerReceiver(mBroadcastReceiver, intentFilter);
 
         // init navigation bar
         navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+        setBadge();
+
         // init Toolbar
         mToolbarTb = (Toolbar) findViewById(R.id.tb_toolbar);
         setSupportActionBar(mToolbarTb);
@@ -96,10 +120,29 @@ public class MainActivity extends AppCompatActivity {
         listView.setOnItemClickListener(onItemClickListener);
     }
 
+    public void setBadge() {
+        BottomNavigationMenuView menuView = (BottomNavigationMenuView) navigation.getChildAt(0);
+        // set badge 0
+        View tab = menuView.getChildAt(0);
+        BottomNavigationItemView itemView = (BottomNavigationItemView) tab;
+        View badge = LayoutInflater.from(this).inflate(R.layout.notification_msg, menuView, false);
+        itemView.addView(badge);
+        TextView textView = findViewById(R.id.msg);
+        textView.setVisibility(View.INVISIBLE);
+        // set badge 1
+        tab = menuView.getChildAt(1);
+        itemView = (BottomNavigationItemView) tab;
+        badge = LayoutInflater.from(this).inflate(R.layout.notification_post, menuView, false);
+        itemView.addView(badge);
+        textView = findViewById(R.id.post);
+        textView.setVisibility(View.INVISIBLE);
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
         Log.i("tag", "onDestroy: Main");
+        unregisterReceiver(mBroadcastReceiver);
     }
 
     @Override
@@ -115,6 +158,8 @@ public class MainActivity extends AppCompatActivity {
         // init navigation bar
         navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+        setBadge();
+
         // init Toolbar
         mToolbarTb = (Toolbar) findViewById(R.id.tb_toolbar);
         setSupportActionBar(mToolbarTb);
@@ -134,6 +179,7 @@ public class MainActivity extends AppCompatActivity {
         navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setSelectedItemId(R.id.navigation_dashboard);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+        setBadge();
 
         // init ListView
         if (post_data == null) {
@@ -149,12 +195,15 @@ public class MainActivity extends AppCompatActivity {
         navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setSelectedItemId(R.id.navigation_notifications);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+        setBadge();
 
         Button quit_btn = findViewById(R.id.quit_btn);
         quit_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                logOut("log-out");
+               Intent intent = new Intent(MainActivity.this, MyService.class);
+               stopService(intent);
             }
         });
     }
@@ -198,7 +247,7 @@ public class MainActivity extends AppCompatActivity {
                 int[] to = new int[] {R.id.list_item_name, R.id.list_item_msg,
                         R.id.list_item_image, R.id.list_item_date };
 
-                SimpleAdapter adapter = new SimpleAdapter(this, list_data,
+                adapter = new SimpleAdapter(this, list_data,
                         R.layout.list_view_item, from, to);
                 listView = (ListView) findViewById(R.id.list_view);
                 listView.setAdapter(adapter);
@@ -221,21 +270,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private boolean checkIfLoged() {
-        SharedPreferences sharedPreferences =
-                getSharedPreferences("system_data", Context.MODE_PRIVATE);
-        String mpsd = sharedPreferences.getString("token", "");
-        return !mpsd.equals("");
-    }
-
     private void logOut(String tag) {
-        SharedPreferences sharedPreferences =
-                getSharedPreferences("system_data", Context.MODE_PRIVATE);
-        String token = sharedPreferences.getString("token", "");
-
         Map<String, String> map = new HashMap<>();
-        map.put("token", token);
-
+        map.put("token", state.getToken());
         JSONObject object = new JSONObject(map);
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST,
@@ -266,15 +303,48 @@ public class MainActivity extends AppCompatActivity {
                     userData.msg, Toast.LENGTH_SHORT).show();
         }
         else {
-            SharedPreferences sharedPreferences =
-                    getSharedPreferences("system_data", Context.MODE_PRIVATE);
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.clear();
-            editor.apply();
+            state.clear();
 
             // switch to log in activity
             Intent intent = new Intent(MainActivity.this, LoginActivity.class);
             startActivity(intent);
+        }
+    }
+
+    public class MsgBroadCastReceiver extends BroadcastReceiver {
+        private static final String MESSAGE_ACTION = "MESSAGE_ACTION";
+        private static final String POST_ACTION = "POST_ACTION";
+        private static final String NEWS_ACTION = "NEWS_ACTION";
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction() != null) {
+                switch (intent.getAction()) {
+                    case MESSAGE_ACTION: Log.i("broad", "rev message");
+                                         onMessageAction();
+                                         break;
+                    case POST_ACTION: Log.i("broad", "rev post");
+                                      onPostAction();
+                                      break;
+                    case NEWS_ACTION: Log.i("broad", "rev news");
+                                      onMessageAction();
+                                      break;
+                }
+            }
+        }
+
+        private void onMessageAction() {
+            if (navigation.getSelectedItemId() != R.id.navigation_home) {
+                TextView textView = findViewById(R.id.msg);
+                textView.setVisibility(View.VISIBLE);
+            }
+
+        }
+        private void onPostAction() {
+            if (navigation.getSelectedItemId() != R.id.navigation_dashboard) {
+                TextView textView = findViewById(R.id.post);
+                textView.setVisibility(View.VISIBLE);
+            }
         }
     }
 

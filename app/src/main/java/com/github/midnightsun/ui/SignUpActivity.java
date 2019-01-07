@@ -1,4 +1,4 @@
-package com.github.midnightsun.viewmodel;
+package com.github.midnightsun.ui;
 
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;

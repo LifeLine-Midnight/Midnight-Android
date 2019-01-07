@@ -1,7 +1,11 @@
 package com.github.midnightsun.service;
 
+import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.Application;
+import android.content.ComponentName;
 import android.content.Context;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.android.volley.Request;
@@ -13,6 +17,7 @@ import com.android.volley.toolbox.Volley;
 
 import org.json.JSONObject;
 
+import java.util.List;
 import java.util.Map;
 
 
@@ -30,55 +35,26 @@ public class MyApplication extends Application {
         return queues;
     }
 
-
-
-
-    public static void volleyGet(final Context context, String uri, final String tag) {
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, host + uri, null,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject jsonObject) {//jsonObject为请求返回的Json格式数据
-//                        Toast.makeText(context,jsonObject.toString(),Toast.LENGTH_LONG).show();
-                        Log.i(tag, jsonObject.toString());
-
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError volleyError) {
-//                        Toast.makeText(context, volleyError.toString(),Toast.LENGTH_LONG).show();
-                          Log.i(tag, volleyError.toString());
-                    }
-                });
-
-        //设置请求的Tag标签，可以在全局请求队列中通过Tag标签进行请求的查找
-        request.setTag(tag);
-        //将请求加入全局队列中
-        MyApplication.getHttpQueues().add(request);
+    /**
+     * 判断某个activity是否在前台显示
+     */
+    public static boolean isForeground(Activity activity) {
+        return isForeground(activity, activity.getClass().getName());
     }
 
-    public static void volleyPost(final Context context, String uri, final String tag, Map<String, String> map) {
-        //将map转化为JSONObject对象
-        JSONObject jsonObject = new JSONObject(map);
-
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, host + uri, jsonObject,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject jsonObject) {//jsonObject为请求返回的Json格式数据
-//                        Toast.makeText(context,jsonObject.toString(), Toast.LENGTH_LONG).show();
-                        Log.i(tag, jsonObject.toString());
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError volleyError) {
-//                        Toast.makeText(context,volleyError.toString(),Toast.LENGTH_LONG).show();
-                        Log.i(tag, volleyError.toString());
-                    }
-                });
-        //设置请求的Tag标签，可以在全局请求队列中通过Tag标签进行请求的查找
-        request.setTag(tag);
-        //将请求加入全局队列中
-        MyApplication.getHttpQueues().add(request);
+    /**
+     * 判断某个界面是否在前台,返回true，为显示,否则不是
+     */
+    public static boolean isForeground(Activity context, String className) {
+        if (context == null || TextUtils.isEmpty(className))
+            return false;
+        ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        List<ActivityManager.RunningTaskInfo> list = am.getRunningTasks(1);
+        if (list != null && list.size() > 0) {
+            ComponentName cpn = list.get(0).topActivity;
+            if (className.equals(cpn.getClassName()))
+                return true;
+        }
+        return false;
     }
 }
