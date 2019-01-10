@@ -5,7 +5,6 @@
     android:layout_height="80dp"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:paddingTop="10dp"
-    android:paddingBottom="10dp"
     android:background="#ffffff">
     <ImageView
         android:id="@+id/list_item_image"
@@ -33,6 +32,9 @@
         android:textColor="#7f7f7f"
         android:text="@string/app_name"
         android:gravity="center"
+        android:maxEms="10"
+        android:maxLines="1"
+        android:ellipsize="end"
         app:layout_constraintStart_toEndOf="@id/list_item_image"
         app:layout_constraintBottom_toBottomOf="@id/list_item_image"
         app:layout_constraintTop_toBottomOf="@id/list_item_name"
@@ -43,9 +45,10 @@
         android:layout_height="20dp"
         android:textColor="#ffffff"
         android:textSize="15sp"
-        android:gravity="center"
+        android:gravity="center_horizontal"
         android:background="@drawable/red_circle"
         android:visibility="invisible"
+        android:paddingTop="0dp"
         app:layout_constraintTop_toTopOf="@id/list_item_image"
         app:layout_constraintEnd_toEndOf="@id/list_item_image" />
     <TextView
@@ -59,6 +62,12 @@
         app:layout_constraintTop_toTopOf="@id/list_item_name"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginEnd="@dimen/activity_horizontal_margin"/>
-    
-
+    <View
+        android:layout_width="0dp"
+        android:layout_height="0.5dp"
+        app:layout_constraintStart_toStartOf="@id/list_item_name"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:background="#dfdfdf">
+    </View>
 </android.support.constraint.ConstraintLayout>

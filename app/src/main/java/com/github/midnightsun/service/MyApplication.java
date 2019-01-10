@@ -23,7 +23,7 @@ import java.util.Map;
 
 public class MyApplication extends Application {
     private static RequestQueue queues ;
-    public static final String host = "http://golfqiu.cn";
+    public static final String host = "http://129.204.101.150";
 
     @Override
     public void onCreate() {

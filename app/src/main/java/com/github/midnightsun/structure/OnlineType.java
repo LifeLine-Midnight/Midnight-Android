@@ -3,8 +3,7 @@ package com.github.midnightsun.structure;
 import com.github.midnightsun.structure.MoreBeanType;
 
 public class OnlineType extends MoreBeanType {
-    public static final int TYPE_ONLINE = 3;
-    public static final int TYPE_OFFLINE = 4;
+    public static final int TYPE_ONLINE = 2;
 
     private String name;
 
@@ -23,7 +22,7 @@ public class OnlineType extends MoreBeanType {
     }
 
     @Override
-    public String getResourcesContent(int kind) {
+    public String getResourcesContent() {
         if (super.getViewType() == TYPE_ONLINE) {
             return (name + " is online");
         }

@@ -14,11 +14,11 @@ import java.util.List;
 
 public class ChatAdapter extends RecyclerView.Adapter {
     //定义五种常量  表示五种条目类型
-    public static final int TYPE_MSG_LEFT = 0;
-    public static final int TYPE_MSG_RIGHT = 1;
-    public static final int TYPE_MSG_DATE = 2;
-    public static final int TYPE_ONLINE = 3;
-    public static final int TYPE_OFFLINE = 4;
+    public static final int MSG_OTHER = 0;
+    public static final int MSG_SELF = 1;
+    public static final int MSG_ONLINE = 2;
+    public static final int MSG_OFFLINE = 3;
+    public static final int MSG_TIME = 4;
     private List<MoreBeanType> mData;
 
     public ChatAdapter(List<MoreBeanType> data) {
@@ -31,22 +31,22 @@ public class ChatAdapter extends RecyclerView.Adapter {
         View view;
         //根据viewtype来创建条目
         switch (viewType) {
-            case TYPE_MSG_LEFT:
+            case MSG_OTHER:
                 view = LayoutInflater.from(parent.getContext()).
                         inflate(R.layout.msg_left,parent,false);
                 return new MsgLeftHolder(view);
 
-            case TYPE_MSG_RIGHT:
+            case MSG_SELF:
                 view = LayoutInflater.from(parent.getContext()).
                         inflate(R.layout.msg_right,parent,false);
                 return new MsgRightHolder(view);
 
-            case TYPE_ONLINE:
+            case MSG_ONLINE:
                 view = LayoutInflater.from(parent.getContext()).
                         inflate(R.layout.msg_online,parent,false);
                 return new MsgOnlineHolder(view);
 
-            case TYPE_OFFLINE:
+            case MSG_OFFLINE:
                 view = LayoutInflater.from(parent.getContext()).
                         inflate(R.layout.msg_online,parent,false);
                 return new MsgOfflineHolder(view);
@@ -66,22 +66,21 @@ public class ChatAdapter extends RecyclerView.Adapter {
         if (holder instanceof MsgLeftHolder) {
             ((MsgLeftHolder) holder).imageView.
                     setImageResource(moreBeanType.getResourcesID());
-            ((MsgLeftHolder) holder).textView.setText(moreBeanType.getResourcesContent(0));
+            ((MsgLeftHolder) holder).textView.setText(moreBeanType.getResourcesContent());
         }
         else if (holder instanceof  MsgRightHolder) {
             ((MsgRightHolder) holder).imageView.
                     setImageResource(moreBeanType.getResourcesID());
-            ((MsgRightHolder) holder).textView.setText(moreBeanType.getResourcesContent(0));
+            ((MsgRightHolder) holder).textView.setText(moreBeanType.getResourcesContent());
         }
         else if (holder instanceof MsgDateHolder) {
-            ((MsgDateHolder) holder).dateView.setText(moreBeanType.getResourcesContent(0));
-            ((MsgDateHolder) holder).timeView.setText(moreBeanType.getResourcesContent(1));
+            ((MsgDateHolder) holder).dateView.setText(moreBeanType.getResourcesContent());
         }
         else if (holder instanceof MsgOnlineHolder) {
-            ((MsgOnlineHolder) holder).textView.setText(moreBeanType.getResourcesContent(0));
+            ((MsgOnlineHolder) holder).textView.setText(moreBeanType.getResourcesContent());
         }
         else {
-            ((MsgOfflineHolder) holder).textView.setText(moreBeanType.getResourcesContent(0));
+            ((MsgOfflineHolder) holder).textView.setText(moreBeanType.getResourcesContent());
         }
     }
 
@@ -128,11 +127,10 @@ public class ChatAdapter extends RecyclerView.Adapter {
     }
 
     public class MsgDateHolder extends RecyclerView.ViewHolder {
-        public TextView dateView, timeView;
+        public TextView dateView;
         public MsgDateHolder(View itemView) {
             super(itemView);
             dateView = itemView.findViewById(R.id.msg_date);
-            timeView = itemView.findViewById(R.id.msg_time);
         }
     }
 

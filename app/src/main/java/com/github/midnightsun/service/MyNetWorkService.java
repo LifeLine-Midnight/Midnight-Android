@@ -15,20 +15,24 @@ import com.github.midnightsun.datatype.NewsData;
 import com.github.midnightsun.datatype.OptionData;
 import com.github.midnightsun.datatype.PostData;
 import com.github.midnightsun.datatype.UserData;
+import com.github.midnightsun.model.ChatRecordModel;
+import com.github.midnightsun.model.MomentRecordModel;
+import com.github.midnightsun.model.NewsRecordModel;
 import com.github.midnightsun.utilis.SystemState;
+import com.github.midnightsun.utilis.TimeTool;
 import com.google.gson.Gson;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MyService extends Service {
-    private static final String TAG = "MyService";
+public class MyNetWorkService extends Service {
+    private static final String TAG = "MyNetWorkService";
     private static final String uri_act = "/midnightapisvr/api/action/getcurrentaction";
     private static final String uri_ack = "/midnightapisvr/api/action/normalmsgack";
-    private static final String uri_choice = "/midnightapisvr/api/action/makechoice";
 
     private static final int ACTION_NULL = 0;
     private static final int ACTION_MSG = 1;
@@ -40,15 +44,19 @@ public class MyService extends Service {
 
     private Handler handler = new Handler();
     private Runnable runnable;
-    private SystemState state = new SystemState(MyService.this);
+    private SystemState state = new SystemState(MyNetWorkService.this);
     private Gson gson = new Gson();
+    private TimeTool timeTool = new TimeTool();
+    ChatRecordModel chatRecordModel;
+    NewsRecordModel newsRecordModel;
+    MomentRecordModel momentRecordModel;
     MessageData messageData;
     NewsData newsData;
     PostData postData;
     OptionData optionData;
     UserData userData;
 
-    public MyService() {
+    public MyNetWorkService() {
         setRunnableTask();
     }
 
@@ -61,6 +69,13 @@ public class MyService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        chatRecordModel = new ChatRecordModel(
+                MyNetWorkService.this, state.getUserName());
+        newsRecordModel = new NewsRecordModel(
+                MyNetWorkService.this, state.getUserName());
+        momentRecordModel = new MomentRecordModel(
+                MyNetWorkService.this, state.getUserName());
+
         Log.w(TAG, "in onCreate");
     }
     @Override
@@ -152,14 +167,9 @@ public class MyService extends Service {
 
     private void optionSentAction(JSONObject jsonObject) {
         optionData = gson.fromJson(jsonObject.toString(), OptionData.class);
-        Log.i("action.option: ", optionData.data.conjunction_info.l_content
-        + "  " + optionData.data.conjunction_info.r_content);
-
-        Map<String, Object> map = new HashMap<>();
-        map.put("token", state.getToken());
-        map.put("sid", optionData.data.base_info.sid);
-        map.put("option", 0);
-        postACK(map, uri_choice, ACTION_OPT);
+//        Log.i("action.option: ", optionData.data.conjunction_info.l_content
+//        + "  " + optionData.data.conjunction_info.r_content);
+        UIrefresh(ACTION_OPT);
     }
 
     private void newsSentActon(JSONObject jsonObject) {
@@ -212,7 +222,9 @@ public class MyService extends Service {
                     public void onResponse(JSONObject jsonObject) {
                         Log.i("msg-ack", jsonObject.toString());
                         userData = gson.fromJson(jsonObject.toString(), UserData.class);
-                        UIrefresh(type);
+                        if (userData.rtn == 0) {
+                            UIrefresh(type);
+                        }
                     }
                 },
                 new Response.ErrorListener() {
@@ -229,31 +241,88 @@ public class MyService extends Service {
     private void UIrefresh(int type) {
         Intent intent = new Intent();
         switch (type) {
-            case ACTION_MSG:  intent.setAction("MESSAGE_ACTION");
-                              sendBroadcast(intent);
-                              Log.i("broad", "send message");
-                              break;
-            case ACTION_OPT:  intent.setAction("OPTION_ACTION");
-                              sendBroadcast(intent);
-                              Log.i("broad", "send opt");
-                              break;
-            case ACTION_NEWS: intent.setAction("NEWS_ACTION");
-                              sendBroadcast(intent);
-                              Log.i("broad", "send news");
-                              break;
-            case ACTION_POST: intent.setAction("POST_ACTION");
-                              sendBroadcast(intent);
-                              Log.i("broad", "send post");
-                              break;
-            case ACTION_ON:   intent.setAction("ONLINE_ACTION");
-                              sendBroadcast(intent);
-                              Log.i("broad", "send online");
-                              break;
-            case ACTION_OFF:  intent.setAction("OFFLINE_ACTION");
-                              sendBroadcast(intent);
-                              Log.i("broad", "send offline");
-                              break;
+            case ACTION_MSG:
+                intent.setAction("MESSAGE_ACTION");
+                intent.putExtra("content", messageData.data.conjunction_info.content);
+                chatRecordModel.addChattingItem(ChatRecordModel.MSG_OTHER,
+                        messageData.data.conjunction_info.content, false);
+                if (checkTimeDelay(intent)) {
+                    intent.putExtra("show_time", true);
+                } else {
+                    intent.putExtra("show_time", false);
+                }
+                sendBroadcast(intent);
+                Log.i("broad", "send message");
+                break;
+            case ACTION_OPT:
+                intent.setAction("OPTION_ACTION");
+                intent.putExtra("l_content", optionData.data.conjunction_info.l_content);
+                intent.putExtra("r_content", optionData.data.conjunction_info.r_content);
+                intent.putExtra("sid", optionData.data.base_info.sid);
+                sendBroadcast(intent);
+//                Log.i("broad", "send opt");
+                break;
+
+            case ACTION_NEWS:
+                intent.setAction("NEWS_ACTION");
+                intent.putExtra("title", newsData.data.conjunction_info.title);
+                intent.putExtra("content", newsData.data.conjunction_info.content);
+                newsRecordModel.addNews(newsData.data.conjunction_info.title,
+                        newsData.data.conjunction_info.content, false);
+                sendBroadcast(intent);
+                Log.i("broad", "send news");
+                break;
+
+            case ACTION_POST:
+                intent.setAction("POST_ACTION");
+                momentRecordModel.addPostItem(postData.data.conjunction_info.author,
+                        postData.data.conjunction_info.content,
+                        postData.data.conjunction_info.img_uri, false);
+                intent.putExtra("author", postData.data.conjunction_info.author);
+                intent.putExtra("date", timeTool.timeConverterLong(timeTool.getTimeRightNowLong()));
+                intent.putExtra("content", postData.data.conjunction_info.content);
+                intent.putExtra("img_uri", postData.data.conjunction_info.img_uri);
+                sendBroadcast(intent);
+                Log.i("broad", "send post");
+                break;
+
+            case ACTION_ON:
+                intent.setAction("ONLINE_ACTION");
+                chatRecordModel.addChattingItem(ChatRecordModel.MSG_ONLINE,
+                        "", true);
+                if (checkTimeDelay(intent)) {
+                    intent.putExtra("show_time", true);
+                } else {
+                    intent.putExtra("show_time", false);
+                }
+                sendBroadcast(intent);
+                Log.i("broad", "send online");
+                break;
+
+            case ACTION_OFF:
+                intent.setAction("OFFLINE_ACTION");
+                chatRecordModel.addChattingItem(ChatRecordModel.MSG_OFFLINE,
+                        "", true);
+                sendBroadcast(intent);
+                Log.i("broad", "send offline");
+                break;
             default: break;
         }
+    }
+
+    private boolean checkTimeDelay(Intent intent) {
+        ArrayList<ChatRecordModel.ChattingItem>
+                items = chatRecordModel.getChattingItems(1);
+        if (!items.isEmpty()) {
+            ChatRecordModel.ChattingItem item = items.get(0);
+            if (timeTool.isLongEnough(item.Ctime)) {
+                String time = timeTool.getTimeRightNowLong();
+                chatRecordModel.addChattingItem(ChatRecordModel.MSG_TIME,
+                        time, true);
+                intent.putExtra("time", time);
+                return true;
+            }
+        }
+        return false;
     }
 }

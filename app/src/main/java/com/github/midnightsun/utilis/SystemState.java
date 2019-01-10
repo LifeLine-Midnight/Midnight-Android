@@ -31,10 +31,22 @@ public class SystemState {
         return sharedPreferences.getString("token", "");
     }
 
-    public void clear() {
+    public void setUserName(String username) {
         sharedPreferences = context.getSharedPreferences(name, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.clear();
+        editor.putString("username", username);
+        editor.apply();
+    }
+
+    public String getUserName() {
+        sharedPreferences = context.getSharedPreferences(name, Context.MODE_PRIVATE);
+        return sharedPreferences.getString("username", "");
+    }
+
+    public void clear(String tag) {
+        sharedPreferences = context.getSharedPreferences(name, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.remove(tag);
         editor.apply();
     }
 }

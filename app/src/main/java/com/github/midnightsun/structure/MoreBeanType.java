@@ -9,7 +9,7 @@ public abstract class MoreBeanType {
         return viewType;
     }
     public abstract int getResourcesID();
-    public abstract String getResourcesContent(int kind);
+    public abstract String getResourcesContent();
 
     public void setViewType(int viewType) {
         this.viewType = viewType;

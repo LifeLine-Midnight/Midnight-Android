@@ -15,7 +15,7 @@
         android:id="@+id/user_img"
         android:layout_width="80dp"
         android:layout_height="80dp"
-        android:src="@drawable/dft0"
+        android:src="@drawable/user_default"
         android:scaleType="fitXY"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/back_img"

@@ -16,7 +16,7 @@ public class MessageType extends MoreBeanType {
     }
 
     @Override
-    public String getResourcesContent(int kind) {
+    public String getResourcesContent() {
         return msg;
     }
 

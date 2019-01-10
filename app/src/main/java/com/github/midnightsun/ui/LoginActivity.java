@@ -117,6 +117,7 @@ public class LoginActivity extends AppCompatActivity {
                     "登陆成功",Toast.LENGTH_SHORT).show();
 
             state.setToken(userData.data.token);
+            state.setUserName(userData.data.usrname);
             // switch to main activity
             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
             startActivity(intent);

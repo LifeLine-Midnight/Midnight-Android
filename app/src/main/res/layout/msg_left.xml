@@ -28,7 +28,7 @@
         android:textColor="#0f0f0f"
         android:paddingStart="25dp"
         android:textSize="17dp"
-        android:maxWidth="280dp"
+        android:maxWidth="240dp"
         android:lineSpacingExtra="3dp"
         app:layout_constraintStart_toEndOf="@id/chat_img"
         app:layout_constraintTop_toTopOf="@id/chat_img" />
